@@ -1,7 +1,7 @@
-import {readdir, writeFile} from 'fs/promises';
+import {writeFile} from 'fs/promises';
 import {resolve} from 'path';
-import {TimematorSDK, makeUniqueEntries, parseTimematorCsv} from './timemator';
 import {Logger} from './logger';
+import {TimematorSDK} from './timemator';
 
 (async () => {
   const logger = Logger.getInstance();
