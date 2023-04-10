@@ -1,0 +1,6 @@
+# git ignore file for nodejs projects
+
+node_modules
+npm-debug.log
+.DS_Store
+.env
