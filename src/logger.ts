@@ -1,30 +1,67 @@
+import {createLogger, format, transports, Logger as WLogger} from 'winston';
+
+// create a logger class using winston
 export class Logger {
-  private static instance: Logger;
-  private constructor() {}
+  private instance: WLogger;
+  constructor() {
+    this.instance = createLogger({
+      level: 'info',
+      format: format.json(),
+      // defaultMeta: {service: 'user-service'},
+      transports: [
+        //
+        // - Write to all logs with level `info` and below to `combined.log`
+        // - Write all logs error (and below) to `error.log`.
+        //
+        new transports.File({filename: 'error.log', level: 'error'}),
+        new transports.File({filename: 'combined.log'}),
+      ],
+    });
 
-  public static getInstance(): Logger {
-    if (!Logger.instance) {
-      Logger.instance = new Logger();
+    if (process.env.NODE_ENV !== 'production') {
+      this.instance.add(
+        new transports.Console({
+          format: format.simple(),
+        })
+      );
     }
-    return Logger.instance;
   }
 
-  public log(message: string): void {
-    console.log(message);
+  info(message: string | object) {
+    if (typeof message === 'object') {
+      message = JSON.stringify(message, null, 2);
+    }
+    this.instance.info(message);
   }
-  public error(message: string): void {
-    console.error(`ERROR: ${message}`);
+  warn(message: string | object) {
+    if (typeof message === 'object') {
+      message = JSON.stringify(message, null, 2);
+    }
+
+    this.instance.warn(message);
   }
 
-  public warn(message: string): void {
-    console.warn(`WARN: ${message}`);
+  error(message: string | object) {
+    if (typeof message === 'object') {
+      message = JSON.stringify(message, null, 2);
+    }
+
+    this.instance.error(message);
   }
 
-  public info(message: string): void {
-    console.info(`INFO: ${message}`);
+  debug(message: string | object) {
+    if (typeof message === 'object') {
+      message = JSON.stringify(message, null, 2);
+    }
+
+    this.instance.debug(message);
   }
 
-  public debug(message: string): void {
-    console.debug(`DEBUG: ${message}`);
+  verbose(message: string | object) {
+    if (typeof message === 'object') {
+      message = JSON.stringify(message, null, 2);
+    }
+
+    this.instance.verbose(message);
   }
 }
