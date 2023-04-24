@@ -1,6 +1,6 @@
 import {readFile, readdir} from 'fs/promises';
-import {parseAsync} from './csv-parse';
-import {Logger} from './logger';
+import {parseAsync} from '../csv-parse';
+import {Logger} from '../logger';
 
 export interface TimematorCsvEntry {
   unix_begin: number;
@@ -28,6 +28,17 @@ export type TimematorEntry = {
   duration: number;
   hourlyRate: number;
   description: string;
+};
+
+export const folderTaskToKey = (folder: string, task: string): string => {
+  return `${folder ? folder + '/' : ''}${task}`;
+};
+
+export const keyToFolderTask = (
+  key: string
+): {folder: string; task: string} => {
+  const [folder, task] = key.split('/');
+  return {folder, task};
 };
 
 export const readTimematorCsv = async (
@@ -115,5 +126,14 @@ export class TimematorSDK {
   }
   get entries() {
     return this._entries;
+  }
+
+  get tasks(): string[] {
+    const tasks = new Set<string>();
+    for (const entry of this._entries) {
+      const task = entry.folder ? `${entry.folder}/${entry.task}` : entry.task;
+      tasks.add(task);
+    }
+    return Array.from(tasks.values());
   }
 }

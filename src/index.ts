@@ -1,19 +1,36 @@
-import {writeFile} from 'fs/promises';
 import {resolve} from 'path';
 import {Logger} from './logger';
-import {TimematorSDK} from './timemator';
+import {NSPTimesheetSDK} from './nsp-timesheet-sdk';
+import {NSPTimesheetMerger} from './timemator-merger/NSPTimesheetMerger';
+import {TimematorSDK} from './timemator-sdk/timemator';
 
 (async () => {
-  const logger = Logger.getInstance();
-  const csvPath = resolve(__dirname, '../data/');
-  const timemator = new TimematorSDK(logger);
-  await timemator.init(csvPath);
-  const entries = timemator.entries;
-
+  const logger = new Logger();
+  const dataPath = resolve(__dirname, '../data/');
   const exportPath = resolve(__dirname, '../export/');
-  writeFile(
-    exportPath + '/timemator_entries.json',
-    JSON.stringify(entries, null, 2)
-  );
-  // console.log(entries);
+  const configPath = resolve(__dirname, '../config/');
+  const timemator = new TimematorSDK(logger);
+  await timemator.init(dataPath);
+  const entries = timemator.entries.sort((a, b) => {
+    return a.date.getTime() - b.date.getTime();
+  });
+
+  logger.info(`Found ${entries.length} entries`);
+
+  const timesheets = new NSPTimesheetSDK(logger, {
+    username: 'luca.bianchi@neosperience.com',
+    password: 'Askan1s0n',
+  });
+
+  const merger = await new NSPTimesheetMerger(logger, {
+    matchFile: configPath + '/matches.json',
+    hashesListFile: exportPath + '/hashes.json',
+    nspTimesheetSDK: timesheets,
+    timematorSDK: timemator,
+  }).init();
+
+  await merger.merge();
+
+  // const projects = await timesheets.getProjects();
+  //  console.log(projects);
 })();
