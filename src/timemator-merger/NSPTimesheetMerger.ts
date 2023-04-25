@@ -72,7 +72,8 @@ export class NSPTimesheetMerger {
       const match = matches[matchKey];
       if (match) {
         // this.logger.info(`Match found for ${matchKey}: ${match}`);
-        const {orderId, idSubProj, phaseId} = keyToOrderSubprojectPhase(match);
+        const {orderId, idSubProj, phaseId, opDeLinenumId} =
+          keyToOrderSubprojectPhase(match);
         const {date, duration, description: entryDescription} = entry;
         const description = `${folder} - ${task} - ${entryDescription} - [ref.${entry.uuid}]}`;
         const tsEntry: TimesheetEntry = {
@@ -83,6 +84,9 @@ export class NSPTimesheetMerger {
           idSubProj,
           phaseId,
         };
+        if (opDeLinenumId) {
+          tsEntry.opDeLinenumId = opDeLinenumId;
+        }
 
         const hash: string = await this.calculateHash(tsEntry, entry);
         if (!this._hashes[hash]) {
