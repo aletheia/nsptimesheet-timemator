@@ -28,6 +28,7 @@ export interface TimesheetEntry {
   orderId: string;
   idSubProj: string;
   phaseId: string;
+  opDeLinenumId?: string;
 }
 
 export interface TimesheetEntryTO {
@@ -57,9 +58,22 @@ export const orderSubprojectPhaseToKey = (
 
 export const keyToOrderSubprojectPhase = (
   key: string
-): {orderId: string; idSubProj: string; phaseId: string} => {
-  const [orderId, idSubProj, phaseId] = key.split('/');
-  return {orderId, idSubProj, phaseId};
+): {
+  orderId: string;
+  idSubProj: string;
+  phaseId: string;
+  opDeLinenumId?: string;
+} => {
+  let orderId, idSubProj, phaseId, opDeLinenumId;
+  const split = key.split('/');
+  if (split.length < 3) {
+    throw new Error('Invalid key');
+  } else if (split.length === 3) {
+    [orderId, idSubProj, phaseId] = split;
+  } else {
+    [orderId, idSubProj, phaseId, opDeLinenumId] = split;
+  }
+  return {orderId, idSubProj, phaseId, opDeLinenumId};
 };
 
 const defaultSdkConfig: NSPTimesheetConfig = {
