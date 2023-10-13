@@ -48,6 +48,21 @@ export interface TimesheetEntryTO {
   centroId: string;
 }
 
+export interface ProjectSite {
+  siteId: string;
+  description: string;
+}
+
+export interface TimesheetProject {
+  id: string;
+  description: string;
+  customerId?: string;
+  customerName?: string;
+  ordType?: string;
+  phases: TimesheetEntry[];
+  sites: ProjectSite[];
+}
+
 export const orderSubprojectPhaseToKey = (
   orderId: string,
   idSubProj: string,
@@ -152,12 +167,33 @@ export class NSPTimesheetSDK {
     };
   }
 
-  async getProjects() {
+  async getProjects(): Promise<TimesheetProject[]> {
     const headers = await this.getHttpHeadersWithAuth();
     const response = await axios.get(defaultSdkConfig.treeUrl(), {
       headers,
     });
-    return response.data;
+    return response.data.map((project: any) => {
+      const phases: TimesheetEntry[] = project.phases.map((phase: any) => {
+        return {
+          date: new Date(phase.date),
+          duration: phase.hours,
+          description: phase.description,
+          orderId: project.orderId,
+          idSubProj: phase.idSubPRJ,
+          phaseId: phase.phaseId,
+          opDeLinenumId: phase.opDeLinenumId,
+        };
+      });
+      return {
+        id: project.id,
+        description: project.description,
+        customerId: project.customerId,
+        customerName: project.customerName,
+        ordType: project.ordType,
+        phases,
+        sites: project.sites,
+      };
+    });
   }
 
   async deleteEntry(id: string) {
