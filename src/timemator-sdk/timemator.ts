@@ -125,7 +125,9 @@ export class TimematorSDK {
     this.logger.info(`Found ${entries.length} unique entries`);
   }
   get entries() {
-    return this._entries;
+    return this._entries.sort((a, b) => {
+      return a.date.getTime() - b.date.getTime();
+    });
   }
 
   get tasks(): string[] {
