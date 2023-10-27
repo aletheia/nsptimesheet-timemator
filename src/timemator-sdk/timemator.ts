@@ -1,4 +1,4 @@
-import {readFile, readdir} from 'fs/promises';
+import {readFile, readdir, rename} from 'fs/promises';
 import {parseAsync} from '../csv-parse';
 import {Logger} from '../logger';
 
@@ -29,6 +29,16 @@ export type TimematorEntry = {
   hourlyRate: number;
   description: string;
 };
+
+export interface TimematorSDKOptions {
+  logger: Logger;
+  paths: {
+    data: string;
+    export: string;
+    config: string;
+    archive: string;
+  };
+}
 
 export const folderTaskToKey = (folder: string, task: string): string => {
   return `${folder ? folder + '/' : ''}${task}`;
@@ -107,16 +117,23 @@ export const makeUniqueEntries = (entries: TimematorEntry[]) => {
 
 export class TimematorSDK {
   private _entries: TimematorEntry[];
+  private entryFiles: string[];
+  private logger: Logger;
 
-  constructor(private readonly logger: Logger) {
+  constructor(private readonly config: TimematorSDKOptions) {
     this._entries = [];
+    this.entryFiles = [];
+    this.logger = config.logger;
+    this.config = config;
   }
 
-  async init(folder: string) {
+  async init() {
+    const folder = this.config.paths.data;
     const entries = [];
     const files = await readdir(folder);
     for (const file of files) {
       if (file.endsWith('.csv')) {
+        this.entryFiles.push(file);
         this.logger.info(`Processing file: ${file}`);
         entries.push(...(await parseTimematorCsv(folder + '/' + file)));
       }
@@ -124,6 +141,16 @@ export class TimematorSDK {
     this._entries = makeUniqueEntries(entries);
     this.logger.info(`Found ${entries.length} unique entries`);
   }
+
+  async archiveEntries() {
+    await this.entryFiles.forEach(async file => {
+      this.logger.info(`Archiving file: ${file}`);
+      const sourcePath = `${this.config.paths.data}/${file}`;
+      const targetPath = `${this.config.paths.archive}/${file}`;
+      await rename(sourcePath, targetPath);
+    });
+  }
+
   get entries() {
     return this._entries.sort((a, b) => {
       return a.date.getTime() - b.date.getTime();

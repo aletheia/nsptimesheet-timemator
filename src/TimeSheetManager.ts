@@ -8,6 +8,7 @@ import {
   orderSubprojectPhaseToKey,
 } from './nsp-timesheet-sdk';
 import {NSPTimesheetMerger} from './timemator-merger/NSPTimesheetMerger';
+import {readFile} from 'fs/promises';
 
 export interface TimesheetManagerConfig {
   nspTimesheet: {
@@ -18,6 +19,7 @@ export interface TimesheetManagerConfig {
     data: string;
     export: string;
     config: string;
+    archive: string;
   };
 }
 
@@ -33,6 +35,7 @@ export class TimesheetManager {
   private timemator: TimematorSDK;
   private timesheets: NSPTimesheetSDK;
   private merger: NSPTimesheetMerger;
+  private archiveHashes: {[key: string]: string};
 
   constructor(
     private readonly logger: Logger,
@@ -48,11 +51,15 @@ export class TimesheetManager {
         data: resolve(__dirname, '../data/'),
         export: resolve(__dirname, '../export/'),
         config: resolve(__dirname, '../config/'),
+        archive: resolve(__dirname, '../export/'),
       },
     };
+
     this.config = {...defaultConfig, ...config};
 
-    this.timemator = new TimematorSDK(logger);
+    this.archiveHashes = {};
+
+    this.timemator = new TimematorSDK({logger, paths: this.config.paths});
 
     this.timesheets = new NSPTimesheetSDK(logger, {
       username: this.config.nspTimesheet.username,
@@ -62,13 +69,14 @@ export class TimesheetManager {
     this.merger = new NSPTimesheetMerger(logger, {
       matchFile: paths.config + '/matches.json',
       hashesListFile: paths.export + '/hashes.json',
+      archiveHashesListFile: paths.archive + '/hashes.json',
       nspTimesheetSDK: this.timesheets,
       timematorSDK: this.timemator,
     });
   }
 
   public async init() {
-    await this.timemator.init(this.config.paths.data);
+    await this.timemator.init();
     this.logger.info(`Found ${this.timemator.entries.length} entries`);
     await this.merger.init();
     this.logger.info(`Found ${this.merger.hashes.length} hashes`);
@@ -106,6 +114,11 @@ export class TimesheetManager {
 
   public async rollback() {
     await this.merger.rollback();
+  }
+
+  public async archive() {
+    await this.merger.archiveHashes();
+    await this.timemator.archiveEntries();
   }
 
   public async exportData() {

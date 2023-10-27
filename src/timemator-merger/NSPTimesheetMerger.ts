@@ -10,6 +10,7 @@ import {TimematorEntry, TimematorSDK, folderTaskToKey} from '../timemator-sdk';
 export interface MergerOptions {
   matchFile: string;
   hashesListFile: string;
+  archiveHashesListFile: string;
   nspTimesheetSDK: NSPTimesheetSDK;
   timematorSDK: TimematorSDK;
 }
@@ -45,6 +46,21 @@ export class NSPTimesheetMerger {
   async saveHashes() {
     const {hashesListFile} = this.options;
     await writeFile(hashesListFile, JSON.stringify(this._hashes, null, 2));
+  }
+
+  async archiveHashes() {
+    const {archiveHashesListFile} = this.options;
+    let archiveHashFile = JSON.parse(
+      await readFile(archiveHashesListFile, 'utf-8')
+    );
+
+    archiveHashFile = Object.assign(archiveHashFile, this._hashes);
+    await writeFile(
+      archiveHashesListFile,
+      JSON.stringify(archiveHashFile, null, 2)
+    );
+    this._hashes = {};
+    await this.saveHashes();
   }
 
   async calculateHash(tsEntry: TimesheetEntry, timematorEntry: TimematorEntry) {

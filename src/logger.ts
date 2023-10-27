@@ -37,7 +37,6 @@ export class Logger {
     if (typeof message === 'object') {
       message = JSON.stringify(message, null, 2);
     }
-
     this.instance.warn(message);
   }
 
