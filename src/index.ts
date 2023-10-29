@@ -2,7 +2,13 @@ import {TimesheetManager} from './TimeSheetManager';
 import {Logger} from './logger';
 import {textSync} from 'figlet';
 import {config as dotenvConfig} from 'dotenv';
+import {writeFile} from 'fs/promises';
 const {Select, Confirm} = require('enquirer');
+
+const exportData = async (timesheetManager: TimesheetManager) => {
+  const exported = await timesheetManager.exportData();
+  await writeFile('./export.json', JSON.stringify(exported, null, 2));
+};
 
 (async () => {
   dotenvConfig();
@@ -52,6 +58,11 @@ const {Select, Confirm} = require('enquirer');
           value: 'import',
         },
         {
+          name: 'Export',
+          message: 'Export Projects and Tasks',
+          value: 'export',
+        },
+        {
           name: 'Exit',
           message: 'Exit',
           value: 'exit',
@@ -74,7 +85,7 @@ const {Select, Confirm} = require('enquirer');
         await timesheetManager.merge();
         break;
       case 'Export':
-        await timesheetManager.exportData();
+        await exportData(timesheetManager);
         break;
       case 'Archive':
         break;

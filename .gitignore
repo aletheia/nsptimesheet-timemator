@@ -16,3 +16,4 @@ export/
 
 *.log
 build/
+export.json
