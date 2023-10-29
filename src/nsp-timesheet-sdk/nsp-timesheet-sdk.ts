@@ -134,25 +134,32 @@ export class NSPTimesheetSDK {
 
   async login() {
     this.logger.info('Logging in...');
-    const response = await axios.post(
-      defaultSdkConfig.loginUrl(),
-      {
-        username: this.options.username,
-        password: this.options.password,
-        grant_type: 'password',
-      },
-      {
-        headers: {
-          'Content-Type': 'application/x-www-form-urlencoded',
+    this.logger.info(`Username: ${this.options.username}`);
+    try {
+      const response = await axios.post(
+        defaultSdkConfig.loginUrl(),
+        {
+          username: this.options.username,
+          password: this.options.password,
+          grant_type: 'password',
         },
-      }
-    );
-    this.credentials = {
-      tokenType: response.data.token_type,
-      accessToken: response.data.access_token,
-      expirationDate: new Date(Date.now() + response.data.expires_in * 1000),
-    };
-    return this.credentials;
+        {
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+          },
+        }
+      );
+      this.credentials = {
+        tokenType: response.data.token_type,
+        accessToken: response.data.access_token,
+        expirationDate: new Date(Date.now() + response.data.expires_in * 1000),
+      };
+      return this.credentials;
+    } catch (error) {
+      const errorResponse = error as AxiosError;
+      // this.logger.error(JSON.stringify(errorResponse, null, 2));
+      throw new Error("Couldn't login");
+    }
   }
 
   private async getHttpHeadersWithAuth() {
@@ -216,8 +223,8 @@ export class NSPTimesheetSDK {
 
     const hours: number = parseFloat(duration.toString());
 
-    const month =
-      date.getMonth() < 10 ? `0${date.getMonth() + 1}` : date.getMonth() + 1;
+    const realMonth = date.getMonth() + 1;
+    const month = realMonth < 10 ? `0${realMonth}` : realMonth.toString();
     const day = date.getDate() < 10 ? `0${date.getDate()}` : date.getDate();
 
     const nspTsEntry: TimesheetEntryTO = Object.assign(entryDefaultData, {
@@ -242,7 +249,20 @@ export class NSPTimesheetSDK {
       return res.data.id as unknown as string;
     } catch (e) {
       const error = e as AxiosError;
-      this.logger.error(JSON.stringify(error, null, 2));
+      if (error.response) {
+        const errorInfo = error.response.data as {
+          statusCode: number;
+          statusReason: string;
+          message: string;
+          details: string[];
+        };
+        const message =
+          `${errorInfo.statusReason} (${errorInfo.statusCode}): ` +
+          `${errorInfo.message} - ${errorInfo.details.join(', ')}\n` +
+          `Entry:\n${JSON.stringify(nspTsEntry, null, 2)}`;
+        // this.logger.error(message);
+        error.message = message;
+      }
       throw error;
     }
   }

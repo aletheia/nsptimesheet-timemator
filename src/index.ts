@@ -13,26 +13,26 @@ const exportData = async (timesheetManager: TimesheetManager) => {
 (async () => {
   dotenvConfig();
   const logger = new Logger();
-  const credentials = {
-    username: process.env.NSP_TIMESHEET_USERNAME || '',
-    password: process.env.NSP_TIMESHEET_PASSWORD || '',
-  };
-  logger.info(`Collected credentials for user '${credentials.username}`);
-  if (!credentials.username || !credentials.password) {
-    logger.error('Missing credentials');
-    return;
-  }
-
-  logger.info('Creating timesheet manager');
-  const timesheetManager = new TimesheetManager(logger, {
-    nspTimesheet: credentials,
-  });
-  logger.info('Initializing timesheet manager');
-  await timesheetManager.init();
-
-  // await timesheetManager.merge();
-  console.log(textSync('Timesheet Manager', {horizontalLayout: 'full'}));
   try {
+    const credentials = {
+      username: process.env.NSP_TIMESHEET_USERNAME || '',
+      password: process.env.NSP_TIMESHEET_PASSWORD || '',
+    };
+    logger.info(`Collected credentials for user '${credentials.username}`);
+    if (!credentials.username || !credentials.password) {
+      logger.error('Missing credentials');
+      return;
+    }
+
+    logger.info('Creating timesheet manager');
+    const timesheetManager = new TimesheetManager(logger, {
+      nspTimesheet: credentials,
+    });
+    logger.info('Initializing timesheet manager');
+    await timesheetManager.init();
+
+    // await timesheetManager.merge();
+    console.log(textSync('Timesheet Manager', {horizontalLayout: 'full'}));
     const prompt = new Select({
       name: 'color',
       message: 'Select what you want to do',
@@ -76,18 +76,25 @@ const exportData = async (timesheetManager: TimesheetManager) => {
       logger.info('Exiting');
       return;
     }
+    const archiveTimesheets = new Confirm({
+      name: 'archive',
+      message: 'Do you want to archive merged timesheet?',
+    });
 
+    let archiveAnswer;
     switch (commandAnswer) {
       case 'Merge':
         await timesheetManager.merge();
+        archiveAnswer = await archiveTimesheets.run();
         break;
       case 'Rollback':
-        await timesheetManager.merge();
+        await timesheetManager.rollback();
         break;
       case 'Export':
         await exportData(timesheetManager);
         break;
       case 'Archive':
+        archiveAnswer = await archiveTimesheets.run();
         break;
       case 'Import':
         throw new Error('Not implemented');
@@ -95,17 +102,11 @@ const exportData = async (timesheetManager: TimesheetManager) => {
         throw new Error('Unknown option');
     }
 
-    const archiveTimesheets = new Confirm({
-      name: 'archive',
-      message: 'Do you want to archive merged timesheet?',
-    });
-
-    const archiveAnswer = await archiveTimesheets.run();
     if (archiveAnswer) {
       await timesheetManager.archive();
     }
   } catch (error) {
-    logger.error((error as Error).message);
+    logger.error(JSON.stringify(error, null, 2));
   }
 })();
 

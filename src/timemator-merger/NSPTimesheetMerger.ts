@@ -111,9 +111,8 @@ export class NSPTimesheetMerger {
             this._hashes[hash] = result;
             this.logger.info(`Saved entry: ${JSON.stringify(result)}`);
           } catch (error) {
-            this.logger.error(`Unable to save entry: ${JSON.stringify(error)}`);
             await this.saveHashes();
-            break;
+            throw error;
           }
         } else {
           this.logger.warn(`Duplicate entry found for ${matchKey}`);
@@ -127,6 +126,9 @@ export class NSPTimesheetMerger {
 
   async rollback() {
     const {nspTimesheetSDK} = this.options;
+    this.logger.info(
+      `Rolling back ${Object.keys(this._hashes).length} entries`
+    );
     for (const hash in this._hashes) {
       const entryId = this._hashes[hash];
       this.logger.info(`Deleting entry: ${entryId}`);

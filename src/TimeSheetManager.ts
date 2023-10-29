@@ -51,7 +51,7 @@ export class TimesheetManager {
         data: resolve(__dirname, '../data/'),
         export: resolve(__dirname, '../export/'),
         config: resolve(__dirname, '../config/'),
-        archive: resolve(__dirname, '../export/'),
+        archive: resolve(__dirname, '../data/archive/'),
       },
     };
 
@@ -67,9 +67,9 @@ export class TimesheetManager {
     });
     const paths = this.config.paths;
     this.merger = new NSPTimesheetMerger(logger, {
-      matchFile: paths.config + '/matches.json',
-      hashesListFile: paths.export + '/hashes.json',
-      archiveHashesListFile: paths.archive + '/hashes.json',
+      matchFile: paths.config + 'matches.json',
+      hashesListFile: paths.export + 'hashes.json',
+      archiveHashesListFile: paths.archive + 'hashes-archive.json',
       nspTimesheetSDK: this.timesheets,
       timematorSDK: this.timemator,
     });

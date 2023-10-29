@@ -1,7 +1,7 @@
 {
   "FolderId/TaskId": "orderId/idSubPrj/phaseId",
   "AWS Hero/ServerlessMeetup": "71/1/1/1171_0",
-  "AWS Hero/Webday": "71/1/1/1171_0",
+  "AWS Hero/Events": "71/1/1/1171_0",
   "AWS Hero/Live": "71/1/1/1171_0",
   "AWS Hero/Heroes update": "71/1/1/1171_0",
   "AWS Hero/Talk": "71/1/1/1171_0",
@@ -60,6 +60,9 @@
   "R&D/LLM": "36/2/1/1274_0",
   "R&D/Booster LC": "36/2/1/1274_0",
   "R&D/KnowledgeHub": "36/2/1/1274_0",
+  "R&D/Brainstorming": "36/2/1/1274_0",
+  "R&D/Marketing Copilot": "36/2/1/1274_0",
+  "R&D/PillsBot": "36/2/1/1274_0",
   "WizKey/WizKey Management": "25/1/1/1155_1",
   "WizKey/WizKey R&D": "25/1/1/1155_1",
   "Permessi/Ferie": "3/1/1/328_0",
@@ -70,5 +73,6 @@
   "Presale/Natuzzi": "41/1/5",
   "Projects/WFP": "155/21/1",
   "NSP IT/DevOps ": "69/1/1/1169_6",
-  "Projects/TeamSystem AI": "247/10/1/3199_2"
+  "Projects/TeamSystem AI": "247/10/1/3199_2",
+  "Projects/Blog Tech NSP": "43/5/1/3238_3"
 }
