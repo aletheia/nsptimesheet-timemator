@@ -67,9 +67,9 @@ export class TimesheetManager {
     });
     const paths = this.config.paths;
     this.merger = new NSPTimesheetMerger(logger, {
-      matchFile: paths.config + 'matches.json',
-      hashesListFile: paths.export + 'hashes.json',
-      archiveHashesListFile: paths.archive + 'hashes-archive.json',
+      matchFile: resolve(paths.config, 'matches.json'),
+      hashesListFile: resolve(paths.export, 'hashes.json'),
+      archiveHashesListFile: resolve(paths.archive, 'hashes-archive.json'),
       nspTimesheetSDK: this.timesheets,
       timematorSDK: this.timemator,
     });
